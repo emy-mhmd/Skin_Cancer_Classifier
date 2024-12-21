@@ -8,3 +8,14 @@ Skin Cancer Classifier Application
 pip install flask flask-cors torch torchvision
 
 ```
+
+## Run server
+
+```
+python server.py
+
+```
+
+## Run Frontend
+
+Open index.html in any browser
