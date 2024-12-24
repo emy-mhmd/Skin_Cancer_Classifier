@@ -1,28 +1,198 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skin Cancer Detection</title>
+    <!-- Add Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Page Background */
+        body {
+            background: linear-gradient(to bottom right, #f5f7fa, #c3cfe2);
+            height: 120vh;
+            font-family: 'Arial', sans-serif;
+            color: #333;
+        }
+
+        /* Container Styling */
+        .container {
+            background: #fff;
+            padding: 30px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Header */
+        h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #0056b3;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Image Preview Styling */
+        #imagePreview {
+            max-width: 100%;
+            max-height: 300px;
+            margin: 15px auto;
+            display: none;
+            border: 2px dashed #0056b3;
+            border-radius: 10px;
+            object-fit: contain;
+        }
+
+        /* Button Styling */
+        .btn-primary {
+            background-color: #0056b3;
+            border-color: #0056b3;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #003d80;
+            border-color: #003d80;
+        }
+
+        /* Dropdown Styling */
+        .form-control {
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        /* Result Section */
+        #result {
+            font-size: 1rem;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .error {
+            color: #e74c3c;
+            background-color: #fce8e6;
+            border: 1px solid #e74c3c;
+        }
+
+        .success {
+            color: #2ecc71;
+            background-color: #e9f9ed;
+            border: 1px solid #2ecc71;
+        }
+
+        /* Footer Styling */
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #777;
+        }
+    </style>
 </head>
 <body>
-    <h1>Skin Cancer Detection</h1>
-    <input type="file" id="fileInput" />
-    <button onclick="uploadImage()">Upload and Predict</button>
-    <p id="result"></p>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <h1 class="text-center mb-4">Skin Cancer Detection</h1>
+
+                <!-- File Input -->
+                <div class="form-group">
+                    <label for="fileInput">Upload an Image:</label>
+                    <input type="file" id="fileInput" class="form-control-file" onchange="previewImage()">
+                </div>
+
+                <!-- Image Preview -->
+                <img id="imagePreview" src="" alt="Image Preview">
+
+                <!-- Model Selection -->
+                <div class="form-group">
+                    <label for="modelSelect">Select Detection Model:</label>
+                    <select id="modelSelect" class="form-control">
+                        <option value="default">Ensemble (Default)</option>
+                        <option value="resnet">ResNet</option>
+                        <option value="efficientnetb5">EfficientNet-B5</option>
+                        <option value="vgg16">VGG16</option>
+                    </select>
+                </div>
+
+                <!-- Upload Button -->
+                <button class="btn btn-primary btn-block" onclick="uploadImage()">Upload and Predict</button>
+
+                <!-- Prediction Result -->
+                <p id="result" class="text-center mt-3"></p>
+            </div>
+        </div>
+        <footer>
+            <p>&copy; 2024 Skin Cancer Detection App. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- Add Bootstrap JS and Popper.js -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <script>
-        async function uploadImage() {
+        function previewImage() {
             const fileInput = document.getElementById('fileInput');
             const file = fileInput.files[0];
+            const imagePreview = document.getElementById('imagePreview');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function uploadImage() {
+            const fileInput = document.getElementById('fileInput');
+            const modelSelect = document.getElementById('modelSelect');
+            const file = fileInput.files[0];
+            const model = modelSelect.value;
+
+            if (!file) {
+                document.getElementById('result').innerText = "Please select a file.";
+                document.getElementById('result').classList.add('error');
+                return;
+            }
+
             const formData = new FormData();
             formData.append('file', file);
+            formData.append('model', model);
 
-            const response = await fetch('http://127.0.0.1:5000/predict', {
-                method: 'POST',
-                body: formData
-            });
+            try {
+                const response = await fetch('http://127.0.0.1:5000/predict', {
+                    method: 'POST',
+                    body: formData
+                });
 
-            const result = await response.json();
-            document.getElementById('result').innerText = result.prediction || result.error;
+                const result = await response.json();
+                if (result.prediction) {
+                    document.getElementById('result').innerHTML = `
+                        Prediction: ${result.prediction}<br>
+                        Confidence: ${result.confidence}`;
+                    if (result.prediction === 'Non-Cancerous') {
+                        document.getElementById('result').classList.add('success');
+                        document.getElementById('result').classList.remove('error');
+                    } else if (result.prediction === 'Cancerous') {
+                        document.getElementById('result').classList.add('error');
+                        document.getElementById('result').classList.remove('success');
+                    }
+                } else {
+                    document.getElementById('result').innerText = result.error;
+                    document.getElementById('result').classList.add('error');
+                    document.getElementById('result').classList.remove('success');
+                }
+            } catch (error) {
+                document.getElementById('result').innerText = "An error occurred while processing your request.";
+                document.getElementById('result').classList.add('error');
+            }
         }
     </script>
 </body>
