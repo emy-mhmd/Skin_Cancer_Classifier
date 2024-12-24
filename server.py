@@ -42,6 +42,18 @@ def create_model(model_name):
             torch.nn.Linear(128, 1),
             torch.nn.Sigmoid()  # For binary classification
     )
+
+    elif model_name == 'mobilenet':
+        model = models.mobilenet_v2(weights=None)
+
+    # Replace the classifier
+        model.classifier = torch.nn.Sequential(
+            torch.nn.Linear(model.last_channel, 128),  # Input size is model.last_channel (1280 for MobileNetV2)
+            torch.nn.ReLU(),
+            torch.nn.Dropout(0.3),
+            torch.nn.Linear(128, 1),  # Binary classification output
+            torch.nn.Sigmoid()       # For binary classification
+        )
     else:
         raise ValueError("Invalid model name.")
     return model
@@ -65,7 +77,8 @@ def load_model_weights(model, model_name):
 models_dict = {
     'resnet': load_model_weights(create_model('resnet'), 'resnet'),
     'efficientnetb5': load_model_weights(create_model('efficientnetb5'), 'efficientnetb5'),
-    'vgg16': load_model_weights(create_model('vgg16'), 'vgg16')
+    'vgg16': load_model_weights(create_model('vgg16'), 'vgg16'),
+    'mobilenet': load_model_weights(create_model('mobilenet'), 'mobilenet'),
 }
 
 # Define image transformations
@@ -126,9 +139,10 @@ def ensemble_predict(file):
     resnet_preds = models_dict['resnet'](img)
     efficientnet_preds = models_dict['efficientnetb5'](img)
     vgg_preds = models_dict['vgg16'](img)
+    mobilenet_preds = models_dict['mobilenet'](img)
 
     # Ensemble using averaging
-    ensemble_preds = (resnet_preds + efficientnet_preds ) / 2 # Averaging the results
+    ensemble_preds = (resnet_preds + efficientnet_preds + mobilenet_preds ) / 3 # Averaging the results
 
     # Final predictions (sigmoid to get the confidence)
     final_predictions = (ensemble_preds > 0.5).float().item()
