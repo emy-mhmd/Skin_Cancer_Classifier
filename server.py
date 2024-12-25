@@ -142,7 +142,7 @@ def ensemble_predict(file):
     mobilenet_preds = models_dict['mobilenet'](img)
 
     # Ensemble using averaging
-    ensemble_preds = (resnet_preds + efficientnet_preds + mobilenet_preds ) / 3 # Averaging the results
+    ensemble_preds = (resnet_preds + efficientnet_preds + mobilenet_preds + vgg_preds ) / 4 # Averaging the results
 
     # Final predictions (sigmoid to get the confidence)
     final_predictions = (ensemble_preds > 0.5).float().item()
