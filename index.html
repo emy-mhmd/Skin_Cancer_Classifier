@@ -115,6 +115,7 @@
                         <option value="efficientnetb5">EfficientNet-B5</option>
                         <option value="vgg16">VGG16</option>
                         <option value="mobilenet">MobileNetV2</option>
+                        <option value="handcraftedcnn">Handcrafted CNN</option> <!-- New option added -->
                     </select>
                 </div>
 
@@ -175,9 +176,7 @@
 
                 const result = await response.json();
                 if (result.prediction) {
-                    document.getElementById('result').innerHTML = `
-                        Prediction: ${result.prediction}<br>
-                        Confidence: ${result.confidence}`;
+                    document.getElementById('result').innerHTML = `Prediction: ${result.prediction}<br>Confidence: ${result.confidence}`;
                     if (result.prediction === 'Non-Cancerous') {
                         document.getElementById('result').classList.add('success');
                         document.getElementById('result').classList.remove('error');

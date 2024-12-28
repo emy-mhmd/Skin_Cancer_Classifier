@@ -11,8 +11,45 @@ import numpy as np
 app = Flask(__name__)
 CORS(app)
 
+# Define HandcraftedCNN model class
+class HandcraftedCNN(torch.nn.Module):
+    def __init__(self, device):
+        super(HandcraftedCNN, self).__init__()
+
+        self.conv1 = torch.nn.Conv2d(3, 16, kernel_size=3, padding=1)
+        self.bn1 = torch.nn.BatchNorm2d(16)
+        self.pool1 = torch.nn.MaxPool2d(kernel_size=2, stride=2)
+
+        self.conv2 = torch.nn.Conv2d(16, 32, kernel_size=3, padding=1)
+        self.bn2 = torch.nn.BatchNorm2d(32)
+        self.pool2 = torch.nn.MaxPool2d(kernel_size=2, stride=2)
+
+        self.conv3 = torch.nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.bn3 = torch.nn.BatchNorm2d(64)
+        self.pool3 = torch.nn.MaxPool2d(kernel_size=2, stride=2)
+
+        self.fc1 = torch.nn.Linear(50176, 128)
+        self.fc2 = torch.nn.Linear(128, 1)
+        self.sigmoid = torch.nn.Sigmoid()
+
+        self.to(device)
+
+    def forward(self, x):
+        x = torch.nn.functional.relu(self.bn1(self.conv1(x)))
+        x = self.pool1(x)
+        x = torch.nn.functional.relu(self.bn2(self.conv2(x)))
+        x = self.pool2(x)
+        x = torch.nn.functional.relu(self.bn3(self.conv3(x)))
+        x = self.pool3(x)
+
+        x = x.view(x.size(0), -1)
+        x = torch.nn.functional.relu(self.fc1(x))
+        x = self.sigmoid(self.fc2(x))
+
+        return x
+
 # Function to create models
-def create_model(model_name):
+def create_model(model_name, device):
     if model_name == 'resnet':
         model = models.resnet50(weights=None)
         model.fc = torch.nn.Sequential(
@@ -24,14 +61,12 @@ def create_model(model_name):
         )
     elif model_name == 'efficientnetb5':
         model = EfficientNet.from_name('efficientnet-b5')  # Use the model name from efficientnet_pytorch
-
-        # Replace the fully connected layer (classifier) to match your output
         model._fc = torch.nn.Sequential(
             torch.nn.Linear(model._fc.in_features, 128),
             torch.nn.ReLU(),
             torch.nn.Dropout(0.3),
-            torch.nn.Linear(128, 1),  # Adjust to your output size (1 for binary classification)
-            torch.nn.Sigmoid()  # Sigmoid for binary classification
+            torch.nn.Linear(128, 1),
+            torch.nn.Sigmoid()
         )
     elif model_name == 'vgg16':
         model = models.vgg16(weights=None)
@@ -40,20 +75,19 @@ def create_model(model_name):
             torch.nn.ReLU(),
             torch.nn.Dropout(0.3),
             torch.nn.Linear(128, 1),
-            torch.nn.Sigmoid()  # For binary classification
-    )
-
+            torch.nn.Sigmoid()
+        )
     elif model_name == 'mobilenet':
         model = models.mobilenet_v2(weights=None)
-
-    # Replace the classifier
         model.classifier = torch.nn.Sequential(
-            torch.nn.Linear(model.last_channel, 128),  # Input size is model.last_channel (1280 for MobileNetV2)
+            torch.nn.Linear(model.last_channel, 128),
             torch.nn.ReLU(),
             torch.nn.Dropout(0.3),
-            torch.nn.Linear(128, 1),  # Binary classification output
-            torch.nn.Sigmoid()       # For binary classification
+            torch.nn.Linear(128, 1),
+            torch.nn.Sigmoid()
         )
+    elif model_name == 'handcraftedcnn':
+        model = HandcraftedCNN(device)
     else:
         raise ValueError("Invalid model name.")
     return model
@@ -74,18 +108,19 @@ def load_model_weights(model, model_name):
     return model
 
 # Load all models
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 models_dict = {
-    'resnet': load_model_weights(create_model('resnet'), 'resnet'),
-    'efficientnetb5': load_model_weights(create_model('efficientnetb5'), 'efficientnetb5'),
-    'vgg16': load_model_weights(create_model('vgg16'), 'vgg16'),
-    'mobilenet': load_model_weights(create_model('mobilenet'), 'mobilenet'),
+    'resnet': load_model_weights(create_model('resnet', device), 'resnet'),
+    'efficientnetb5': load_model_weights(create_model('efficientnetb5', device), 'efficientnetb5'),
+    'vgg16': load_model_weights(create_model('vgg16', device), 'vgg16'),
+    'mobilenet': load_model_weights(create_model('mobilenet', device), 'mobilenet'),
+    'handcraftedcnn': create_model('handcraftedcnn', device),  # Add handcrafted CNN model here
 }
 
 # Define image transformations
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
-   #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
 @app.route('/predict', methods=['POST'])
@@ -113,13 +148,13 @@ def predict():
         with torch.no_grad():
             output = model(img)
             pred = (output > 0.5).float().item()
-            confidence = (output*100 ).float().item() # Confidence as percentage
+            confidence = (output * 100).float().item()  # Confidence as percentage
             print(f"{confidence}%")
 
         result = 'Cancerous' if pred == 1 else 'Non-Cancerous'
         if result == 'Non-Cancerous':
-            confidence=100-confidence
-        if confidence >100:
+            confidence = 100 - confidence
+        if confidence > 100:
             confidence = 100
         if confidence < 0:
             confidence = 0
@@ -142,16 +177,16 @@ def ensemble_predict(file):
     mobilenet_preds = models_dict['mobilenet'](img)
 
     # Ensemble using averaging
-    ensemble_preds = (resnet_preds + efficientnet_preds + mobilenet_preds + vgg_preds ) / 4 # Averaging the results
+    ensemble_preds = (resnet_preds + efficientnet_preds + mobilenet_preds + vgg_preds) / 4  # Averaging the results
 
     # Final predictions (sigmoid to get the confidence)
     final_predictions = (ensemble_preds > 0.5).float().item()
-    confidence = (ensemble_preds*100 ).float().item() # Confidence as percentage
+    confidence = (ensemble_preds * 100).float().item()  # Confidence as percentage
     print(f"{confidence}%")
     result = 'Cancerous' if final_predictions == 1 else 'Non-Cancerous'
     if result == 'Non-Cancerous':
-            confidence= 100-confidence
-    if confidence >100:
+        confidence = 100 - confidence
+    if confidence > 100:
         confidence = 100
     if confidence < 0:
         confidence = 0
