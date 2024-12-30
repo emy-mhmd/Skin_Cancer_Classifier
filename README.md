@@ -12,6 +12,9 @@ This repository contains the implementation of a skin cancer binary classificati
 ### Getting Started:  
 The repository includes all necessary scripts for model training, evaluation, and deployment.  
 
+## Dataset: 
+[skin-cancer-isic-images](https://www.kaggle.com/datasets/rm1000/skin-cancer-isic-images/data)
+
 ## Install Requirements
 
 ```
