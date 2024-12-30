@@ -15,6 +15,9 @@ The repository includes all necessary scripts for model training, evaluation, an
 ## Dataset: 
 [skin-cancer-isic-images](https://www.kaggle.com/datasets/rm1000/skin-cancer-isic-images/data)
 
+## Pretrained Models Weights
+[Find weights here](https://drive.google.com/drive/folders/1QVDyVlESDp_Q1T7Swl4abTkB5AEWl5PM?usp=sharing)
+
 ## Install Requirements
 
 ```
