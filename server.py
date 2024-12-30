@@ -12,7 +12,79 @@ app = Flask(__name__)
 CORS(app)
 
 # Define HandcraftedCNN model class
+
+# Handcrafted cnn 
+
 class HandcraftedCNN(torch.nn.Module):
+    def __init__(self, device):
+        super(HandcraftedCNN, self).__init__()
+
+        # First convolutional block
+        self.block1 = torch.nn.Sequential(
+            torch.nn.Conv2d(3, 32, kernel_size=3, padding=1),
+            torch.nn.ReLU(),
+            torch.nn.Conv2d(32, 32, kernel_size=3, padding=1),
+            torch.nn.ReLU(),
+            torch.nn.MaxPool2d(kernel_size=2, stride=2)
+        )
+
+        # Second convolutional block
+        self.block2 = torch.nn.Sequential(
+            torch.nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            torch.nn.ReLU(),
+            torch.nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            torch.nn.ReLU(),
+            torch.nn.MaxPool2d(kernel_size=2, stride=2)
+        )
+
+        # Third convolutional block
+        self.block3 = torch.nn.Sequential(
+            torch.nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            torch.nn.ReLU(),
+            torch.nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            torch.nn.ReLU(),
+            torch.nn.MaxPool2d(kernel_size=2, stride=2)
+        )
+
+        # Fourth convolutional block
+        self.block4 = torch.nn.Sequential(
+            torch.nn.Conv2d(128, 256, kernel_size=3, padding=1),
+            torch.nn.ReLU(),
+            torch.nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            torch.nn.ReLU(),
+            torch.nn.MaxPool2d(kernel_size=2, stride=2)
+        )
+
+        # Fully connected layers
+        # Flatten size: 256 channels * 14 * 14 = 50176 for 224x224 input
+        self.fc = torch.nn.Sequential(
+            torch.nn.Linear(256 * 14 * 14, 512),
+            torch.nn.ReLU(),
+            torch.nn.Dropout(0.4),
+            torch.nn.Linear(512, 1),
+            torch.nn.Sigmoid()
+        )
+
+        # Move model to device
+        self.to(device)
+
+    def forward(self, x):
+        # Pass through convolutional blocks
+        x = self.block1(x)
+        x = self.block2(x)
+        x = self.block3(x)
+        x = self.block4(x)
+
+        # Flatten
+        x = x.view(x.size(0), -1)
+
+        # Pass through fully connected layers
+        x = self.fc(x)
+
+        return x
+
+# Handcrafted cnn 1
+'''class HandcraftedCNN(torch.nn.Module):
     def __init__(self, device):
         super(HandcraftedCNN, self).__init__()
 
@@ -46,7 +118,8 @@ class HandcraftedCNN(torch.nn.Module):
         x = torch.nn.functional.relu(self.fc1(x))
         x = self.sigmoid(self.fc2(x))
 
-        return x
+        return x'''
+
 
 # Function to create models
 def create_model(model_name, device):
