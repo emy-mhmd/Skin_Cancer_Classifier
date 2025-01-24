@@ -47,23 +47,32 @@ class HandcraftedCNN(torch.nn.Module):
         )
 
         # Fourth convolutional block
-        self.block4 = torch.nn.Sequential(
+        '''self.block4 = torch.nn.Sequential(
             torch.nn.Conv2d(128, 256, kernel_size=3, padding=1),
             torch.nn.ReLU(),
             torch.nn.Conv2d(256, 256, kernel_size=3, padding=1),
             torch.nn.ReLU(),
             torch.nn.MaxPool2d(kernel_size=2, stride=2)
-        )
+        )'''
 
         # Fully connected layers
         # Flatten size: 256 channels * 14 * 14 = 50176 for 224x224 input
-        self.fc = torch.nn.Sequential(
+        '''self.fc = torch.nn.Sequential(
             torch.nn.Linear(256 * 14 * 14, 512),
             torch.nn.ReLU(),
             torch.nn.Dropout(0.4),
             torch.nn.Linear(512, 1),
             torch.nn.Sigmoid()
+        )'''
+
+        self.fc = torch.nn.Sequential(
+            torch.nn.Linear(128 * 28 * 28, 512),
+            torch.nn.ReLU(),
+            torch.nn.Dropout(0.6),
+            torch.nn.Linear(512, 1),
+            torch.nn.Sigmoid()
         )
+
 
         # Move model to device
         self.to(device)
@@ -73,7 +82,7 @@ class HandcraftedCNN(torch.nn.Module):
         x = self.block1(x)
         x = self.block2(x)
         x = self.block3(x)
-        x = self.block4(x)
+        #x = self.block4(x)
 
         # Flatten
         x = x.view(x.size(0), -1)
