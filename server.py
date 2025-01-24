@@ -196,7 +196,7 @@ models_dict = {
     'efficientnetb5': load_model_weights(create_model('efficientnetb5', device), 'efficientnetb5'),
     'vgg16': load_model_weights(create_model('vgg16', device), 'vgg16'),
     'mobilenet': load_model_weights(create_model('mobilenet', device), 'mobilenet'),
-    'handcraftedcnn': create_model('handcraftedcnn', device),  # Add handcrafted CNN model here
+    'handcraftedcnn': load_model_weights(create_model('handcraftedcnn', device),'handcraftedcnn')  # Add handcrafted CNN model here
 }
 
 # Define image transformations
