@@ -153,8 +153,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 
 
-##  Acknowledgments
+🙏 Acknowledgments
 
-- NVIDIA's End-to-End Deep Learning for Self-Driving Cars paper
-- Udacity Self-Driving Car Nanodegree program
-- The autonomous driving community
+NVIDIA's End-to-End Deep Learning for Self-Driving Cars paper
+Udacity Self-Driving Car Nanodegree program
+The autonomous driving community
