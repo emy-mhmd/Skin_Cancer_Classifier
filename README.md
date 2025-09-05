@@ -16,8 +16,8 @@ This project implements a deep learning model that learns to steer a car by obse
 
 ##  Demo & Presentation
 
-- **[Video Demonstration](link-to-video)**: Watch the model in action
-- **[Project Presentation](link-to-slides)**: View the PowerPoint slides
+-  Watch the model in action
+-  View the PowerPoint slides
 
 ---
 
@@ -153,8 +153,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 
 
-🙏 Acknowledgments
+## Acknowledgments
 
-NVIDIA's End-to-End Deep Learning for Self-Driving Cars paper
-Udacity Self-Driving Car Nanodegree program
-The autonomous driving community
+- NVIDIA's End-to-End Deep Learning for Self-Driving Cars paper https://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf
+- Udacity Self-Driving Car Nanodegree program
+- The autonomous driving community
