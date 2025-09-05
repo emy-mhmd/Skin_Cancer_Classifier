@@ -1,6 +1,7 @@
 # Skin Cancer Classification using Transfer Learning and Handcrafted CNN  
 
 This repository contains the implementation of a skin cancer binary classification project using transfer learning models and a handcrafted CNN. The models are designed to classify images as either benign or malignant with high accuracy. Additionally, the project includes a user-friendly web application that allows users to upload skin lesion images and select a model for predictions, providing a confidence percentage for each result.  
+**Paper:** [Skin Lesion Classification using CNNs – IEEE ICMISI](https://link-to-your-paper.com)
 
 ### Key Features:  
 - **Pre-Trained Models**: Implementations of ResNet50, EfficientNetB5, MobileNetV2, and VGG16, trained on the ISIC dataset for binary classification.  
